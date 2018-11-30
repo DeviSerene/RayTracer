@@ -14,7 +14,7 @@ glm::vec3 Plane::Shade(glm::vec3 _samplePoint, Ray* _ray, glm::vec3 _lightD)
 {
 	float p = 10;
 
-	glm::vec3 col = glm::vec3(255);
+	glm::vec3 col = glm::vec3(175);
 	return col;
 
 	glm::vec3 normal = glm::normalize(_samplePoint - m_planeCentre);

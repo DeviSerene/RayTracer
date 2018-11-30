@@ -1,13 +1,13 @@
 #include "sphere.h"
 #include <iostream>
 
-Sphere::Sphere(glm::vec3 _sphereCentre, float _radius, glm::vec3 _material, glm::vec3 _spec)
+Sphere::Sphere(glm::vec3 _sphereCentre, float _radius, glm::vec3 _material, glm::vec3 _spec, float _reflectiveness)
 {
 	m_sphereCentre = _sphereCentre;
 	m_radius = _radius;
 	m_material = _material;
 	m_specCol = _spec;
-	m_reflectiveness = 0;
+	m_reflectiveness = _reflectiveness;
 }
 
 void Sphere::Translate(glm::vec3 _by)
@@ -28,9 +28,9 @@ glm::vec3 Sphere::Shade(glm::vec3 _samplePoint, Ray* _ray, glm::vec3 _lightD)
 
 	float dotProduct = glm::dot(normal, lightDirection);
 
-	if (dotProduct < 0.0f)
+	if (dotProduct < 0.00f)
 	{
-		dotProduct = 0.0f;
+		dotProduct = 0.00f;
 
 	}
 

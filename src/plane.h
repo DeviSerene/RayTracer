@@ -14,6 +14,4 @@ private:
 	glm::vec3 m_planeCentre;
 	glm::vec3 m_planeNormal;
 
-	glm::vec3 m_material;
-	glm::vec3 m_specCol;
 };

@@ -42,9 +42,9 @@ int main()
 	//////////////////////
 	Camera* cam = new Camera(WINDOWX, WINDOWY);
 	Tracer* rayTracer = new Tracer();
-	rayTracer->AddObject(new Sphere(glm::vec3(0.65f,0.25f,0), 0.15, glm::vec3(0, 1, 0), glm::vec3(1, 1, 1)));
-	rayTracer->AddObject(new Sphere(glm::vec3(-0.8f, 0, -3.8f), 0.55, glm::vec3(0, 1, 1), glm::vec3(1, 1, 1)));
-	rayTracer->AddObject(new Sphere(glm::vec3(0.25f, -0.2f, -0.0f), 0.45, glm::vec3(1, 1, 0), glm::vec3(1, 1, 1)));
+	rayTracer->AddObject(new Sphere(glm::vec3(0.65f,0.25f,0), 0.15, glm::vec3(0, 1, 0), glm::vec3(1, 1, 1), 0.1f));
+	rayTracer->AddObject(new Sphere(glm::vec3(-0.8f, 0, -3.8f), 0.55, glm::vec3(0, 1, 1), glm::vec3(1, 1, 1), 0.7f));
+	rayTracer->AddObject(new Sphere(glm::vec3(0.25f, -0.2f, -0.0f), 0.45, glm::vec3(1, 1, 0), glm::vec3(1, 1, 1), 0.2f));
 	rayTracer->AddObject(new Plane(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0, 1, 0), glm::vec3(1, 1, 1)));
 
 	/////////////////////////

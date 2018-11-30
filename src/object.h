@@ -18,4 +18,6 @@ public:
 protected:
 	glm::mat4 m_modelMatrix;
 	float m_reflectiveness;
+	glm::vec3 m_material;
+	glm::vec3 m_specCol;
 };
