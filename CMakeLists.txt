@@ -30,6 +30,8 @@ add_executable(raytracer
 	src/sphere.cpp
 	src/tracer.h
 	src/tracer.cpp
+	src/plane.h
+	src/plane.cpp
 )
 
 target_link_libraries(raytracer

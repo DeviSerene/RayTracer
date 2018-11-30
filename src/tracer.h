@@ -11,8 +11,9 @@ public:
 	~Tracer() { for (int i = 0; i < m_objects.size(); i++) { delete m_objects[i]; m_objects.clear(); } }
 	void AddObject(Object* _ob) { m_objects.push_back(_ob);}
 	glm::vec3 RayTrace(Ray* _ray);
+	inline std::vector<Object*> GetObjects() { return m_objects; }
 
 private:
 	std::vector<Object*> m_objects;
-
+	glm::vec3 m_lightPos;
 };

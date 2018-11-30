@@ -11,7 +11,7 @@ Object::~Object()
 {
 }
 
-glm::vec3 Object::Shade(glm::vec3 _samplePoint, Ray* _ray)
+glm::vec3 Object::Shade(glm::vec3 _samplePoint, Ray* _ray, glm::vec3 _lightD)
 {
 	float red, green, blue;
 

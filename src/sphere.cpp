@@ -7,14 +7,21 @@ Sphere::Sphere(glm::vec3 _sphereCentre, float _radius, glm::vec3 _material, glm:
 	m_radius = _radius;
 	m_material = _material;
 	m_specCol = _spec;
+	m_reflectiveness = 0;
 }
 
-glm::vec3 Sphere::Shade(glm::vec3 _samplePoint, Ray* _ray)
+void Sphere::Translate(glm::vec3 _by)
+{
+	m_sphereCentre += _by;
+}
+
+glm::vec3 Sphere::Shade(glm::vec3 _samplePoint, Ray* _ray, glm::vec3 _lightD)
 {
 	float p = 10;
 
 	glm::vec3 normal = glm::normalize(_samplePoint - m_sphereCentre);
 	glm::vec3 lightDirection = { 0.5, -1, 1 };
+	lightDirection = _lightD;
 	glm::vec3 lightColour = { 1, 1, 1 };
 
 	glm::vec3 halfVector = (-_ray->direction + lightDirection) / (glm::length(-_ray->direction + lightDirection));
