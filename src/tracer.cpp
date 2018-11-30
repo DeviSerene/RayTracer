@@ -29,7 +29,27 @@ glm::vec3 Tracer::RayTrace(Ray* _ray)
 
 	if (shortestDistance > 0)
 	{
-		return m_objects[object]->Shade(_ray->origin + (_ray->direction * shortestDistance), _ray);
+		bool inShadow = false;
+		Ray shadowRay;
+		//shadowRay.direction = lightPosition - pHit;
+		shadowRay.origin = _ray->origin + (_ray->direction * shortestDistance);
+		shadowRay.direction = glm::vec3 ( 0, -1, 5 ) - shadowRay.origin;
+		for (int i = 0; i < m_objects.size(); i++)
+		{
+			if (m_objects[i]->TestRay(&shadowRay) > 0 && i != object)
+			{
+				inShadow = true;
+				break;
+			}
+		}
+		if (inShadow)
+		{
+			return glm::vec3( 60,60,60 );
+		}
+		else
+		{
+			return m_objects[object]->Shade(shadowRay.origin, _ray);
+		}
 	}
 	else
 	{
