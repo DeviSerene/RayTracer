@@ -5,9 +5,79 @@
 #include "tracer.h"
 #include <SDL2/SDL.h>
 #include <iostream>
+#include <mutex>
+#include <thread>
+#include <vector>
 
 #define WINDOWX 640
 #define WINDOWY 480
+#define NUM_THREADS 20
+
+class ThreadTrace
+{
+public:
+
+	ThreadTrace(Camera* _cam, Tracer* _rayTracer, SDL_Renderer* _renderer) 
+	{
+		m_cam = _cam; m_rayTracer = _rayTracer; m_renderer = _renderer;
+	}
+
+	void Perform()
+	{
+		m_currentX = 0; m_currentY = 0; m_currentT = 0;
+
+		for (int x = 0; x < WINDOWX; x++)
+		{
+			m_currentX = x;
+			for (int y = 0; y < WINDOWY; y++)
+			{
+				m_currentY = y;
+				//Launch a new thread, creating a ray at the xy location
+				t[m_currentT] = std::thread([this] {this->Call(m_currentX, m_currentY); });
+
+				//if we are currently using all the threads, wait until they are finished
+				m_currentT++;
+				if (m_currentT >= NUM_THREADS)
+				{
+					m_currentT = 0;
+					for (int ct = 0; ct < NUM_THREADS; ct++)
+					{
+						t[ct].join();
+					}
+				}
+			}
+		}
+
+		for (int ct = m_currentT; ct < NUM_THREADS; ct++)
+		{
+			t[ct].join();
+		}
+	}
+
+private:
+
+
+	void Call(int x, int y)
+	{
+
+		Ray currentRay = m_cam->SpawnRay(x, y);
+		glm::vec3 colour = m_rayTracer->RayTrace(&currentRay);
+
+		mu.lock();
+		SDL_SetRenderDrawColor(m_renderer, colour.r, colour.g, colour.b, 255);
+		SDL_RenderDrawPoint(m_renderer, x, y);
+		mu.unlock();
+	}
+
+	int m_currentX;
+	int m_currentY;
+	int m_currentT;
+	std::thread t[NUM_THREADS];
+	std::mutex mu;
+	Camera* m_cam;
+	Tracer* m_rayTracer;
+	SDL_Renderer* m_renderer;
+};
 
 int main()
 {
@@ -49,6 +119,7 @@ int main()
 	rayTracer->AddObject(new Sphere(glm::vec3(1.0f, -0.05f, -2.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0.5f, 0, 0));
 	rayTracer->AddObject(new Plane(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(1, 1, 1)));
 
+	ThreadTrace* tt = new ThreadTrace(cam, rayTracer, m_renderer);
 	/////////////////////////
 	/// PERFORM RAYTRACER ///
 	/////////////////////////
@@ -94,6 +165,7 @@ int main()
 		//draw the screen
 		SDL_SetRenderDrawColor(m_renderer, 0x0, 0x0, 0x0, 0xFF);
 		SDL_RenderClear(m_renderer);
+		//tt->Perform();
 		for (int x = 0; x < WINDOWX; x++)
 		{
 			for (int y = 0; y < WINDOWY; y++)
