@@ -11,7 +11,7 @@
 
 #define WINDOWX 640
 #define WINDOWY 480
-#define NUM_THREADS 20
+#define NUM_THREADS 4
 
 class ThreadTrace
 {
@@ -59,8 +59,6 @@ public:
 	}
 
 private:
-
-
 	void Call(int x, int y)
 	{
 		//std::cout << "X: " << x << " Y: " << y << std::endl;
@@ -77,7 +75,6 @@ private:
 	int m_currentX;
 	int m_currentY;
 	int m_currentT;
-	glm::vec3 cols[WINDOWX*WINDOWY];
 	std::thread t[NUM_THREADS];
 	std::mutex mu;
 	Camera* m_cam;
@@ -133,13 +130,23 @@ int main()
 	float currentT = 0;
 	float lastT = 0;
 	float deltaT = 0;
+	int counter = 0;
+	float fps = 0;
 	int bouncy = 0;
 	SDL_Event e;
 	while (m_play)
 	{
+		counter++;
 		//update time
 		currentT = SDL_GetTicks(); deltaT = currentT - lastT;
 		lastT = currentT;
+		fps += deltaT;
+		if (fps >= 1)
+		{
+			std::cout << "FPS: " << counter << std::endl;
+			counter = 0;
+			fps = 0;
+		}
 		//update SDL event
 		while (SDL_PollEvent(&e) != 0) 
 		{ 
