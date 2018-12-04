@@ -33,6 +33,7 @@ public:
 			{
 				m_currentY = y;
 				//Launch a new thread, creating a ray at the xy location
+				//std::cout << "Thread[" << m_currentT << "] launched. \n";
 				t[m_currentT] = std::thread([this] {this->Call(m_currentX, m_currentY); });
 
 				//if we are currently using all the threads, wait until they are finished
@@ -42,14 +43,17 @@ public:
 					m_currentT = 0;
 					for (int ct = 0; ct < NUM_THREADS; ct++)
 					{
+				//		std::cout << "Thread[" << ct << "] joined. \n";
 						t[ct].join();
 					}
 				}
 			}
 		}
 
-		for (int ct = m_currentT; ct < NUM_THREADS; ct++)
+		//we should now join up all remaining threads to main
+		for (int ct = 0; ct < m_currentT; ct++)
 		{
+		//	std::cout <<"Thread[" << ct << "] joined. \n";
 			t[ct].join();
 		}
 	}
@@ -59,11 +63,12 @@ private:
 
 	void Call(int x, int y)
 	{
-
+		//std::cout << "X: " << x << " Y: " << y << std::endl;
 		Ray currentRay = m_cam->SpawnRay(x, y);
 		glm::vec3 colour = m_rayTracer->RayTrace(&currentRay);
 
 		mu.lock();
+		//cols[x*y] = colour;
 		SDL_SetRenderDrawColor(m_renderer, colour.r, colour.g, colour.b, 255);
 		SDL_RenderDrawPoint(m_renderer, x, y);
 		mu.unlock();
@@ -72,6 +77,7 @@ private:
 	int m_currentX;
 	int m_currentY;
 	int m_currentT;
+	glm::vec3 cols[WINDOWX*WINDOWY];
 	std::thread t[NUM_THREADS];
 	std::mutex mu;
 	Camera* m_cam;
@@ -115,7 +121,7 @@ int main()
 	//                       Sphere(glm::vec3 _sphereCentre,float _radius, glm::vec3 _material,glm::vec3 _spec, float _reflectiveness, float _transparancy, float _refraction)
 	rayTracer->AddObject(new Sphere(glm::vec3(0.65f,0.25f,0),       0.15, glm::vec3(0.2f, 0.8f, 0.2f), glm::vec3(0.8f, 0.8f, 0.8f), 0.1f, 0, 0));
 	rayTracer->AddObject(new Sphere(glm::vec3(-0.8f, 0, -0.8f),     0.55, glm::vec3(0.2f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), 0.7f, 0, 0));
-	rayTracer->AddObject(new Sphere(glm::vec3(0.25f, -0.2f, -0.0f), 0.45, glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), -5.0f, 1.0f, 1.3f));
+	rayTracer->AddObject(new Sphere(glm::vec3(0.25f, -0.2f, -0.0f), 0.45, glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), -5.0f, 0.75f, 1.3f));
 	rayTracer->AddObject(new Sphere(glm::vec3(1.0f, -0.05f, -2.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0.5f, 0, 0));
 	rayTracer->AddObject(new Plane(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(1, 1, 1)));
 
@@ -165,7 +171,10 @@ int main()
 		//draw the screen
 		SDL_SetRenderDrawColor(m_renderer, 0x0, 0x0, 0x0, 0xFF);
 		SDL_RenderClear(m_renderer);
+		//std::cout << "START ";
 		//tt->Perform();
+		//std::cout << "DONE ";
+		///*
 		for (int x = 0; x < WINDOWX; x++)
 		{
 			for (int y = 0; y < WINDOWY; y++)
@@ -177,6 +186,7 @@ int main()
 				SDL_RenderDrawPoint(m_renderer, x, y);
 			}
 		}
+		//*/
 		SDL_RenderPresent(m_renderer);
 	}
 
