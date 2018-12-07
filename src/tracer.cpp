@@ -1,5 +1,5 @@
 #include "tracer.h"
-#define MAX_ITERATIONS 20
+#define MAX_ITERATIONS 10
 
 glm::vec3 Tracer::RayTrace(Ray* _ray, int _iterations, int _ignore)
 {

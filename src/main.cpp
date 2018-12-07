@@ -11,9 +11,19 @@
 
 #define WINDOWX 640
 #define WINDOWY 480
-#define NUM_THREADS_X 4
-#define NUM_THREADS_Y 4
+#define NUM_THREADS 8
 #define FRAME_VALUES 10
+
+/*
+TODO:
+
+Put the multi-threading in its own class
+Put the FPS counter in its own class
+Have multiple iterations of the raytracer: no multithreading, multithreading, openMP; with low number of objects and high number of objects.
+Video: explain the process of shading, shadows, reflections, transparancy and refraction. Show difference between frame rate fo
+
+*/
+
 
 class ThreadTrace
 {
@@ -41,28 +51,30 @@ public:
 	{
 		m_currentX = 0; m_currentY = 0; m_currentT = 0;
 
-		m_maxX = (WINDOWX / NUM_THREADS_X);
-		m_maxY = (WINDOWY / NUM_THREADS_Y);
-		for (int i = 0; i < NUM_THREADS_X; i++)
+		m_maxX = (WINDOWX / (NUM_THREADS/2));
+		m_maxY = (WINDOWY / (NUM_THREADS/2));
+		for (int i = 0; i < (NUM_THREADS / 2); i++)
 		{
 			m_currentX = i * m_maxX;
-			for (int i2 = 0; i2 < NUM_THREADS_Y; i2++)
+			for (int i2 = 0; i2 < (NUM_THREADS / 2); i2++)
 			{
 				m_currentY = i2 * m_maxY;
 		//		std::cout <<"Thread[" << m_currentT << "] started. \n";
-				t[m_currentT] = std::thread([this] {this->Call(m_currentX, m_currentY, m_maxX, m_maxY); });
+				if(m_currentT < NUM_THREADS -1)
+					t[m_currentT] = std::thread([this] {this->Call(m_currentX, m_currentY, m_maxX, m_maxY); });
+				else
+					Call(m_currentX, m_currentY, m_maxX, m_maxY);
 				++m_currentT; //(i*NUM_THREADS_Y) +i2
 			}
 		}
 
 		
 		//we should now join up all remaining threads to main
-		for (int ct = 0; ct < NUM_THREADS_X*NUM_THREADS_Y; ct++)
+		for (int ct = 0; ct < NUM_THREADS -1; ct++)
 		{
 		//	std::cout <<"Thread[" << ct << "] joined. \n";
 			t[ct].join();
 		}
-		//*/
 	}
 
 private:
@@ -91,7 +103,7 @@ private:
 	int m_maxY;
 	int m_currentT;
 	glm::vec3 cols[WINDOWX*WINDOWY];
-	std::thread t[NUM_THREADS_X*NUM_THREADS_Y];
+	std::thread t[NUM_THREADS];
 	std::mutex mu;
 	Camera* m_cam;
 	Tracer* m_rayTracer;
@@ -134,8 +146,14 @@ int main()
 	//                       Sphere(glm::vec3 _sphereCentre,float _radius, glm::vec3 _material,glm::vec3 _spec, float _reflectiveness, float _transparancy, float _refraction)
 	rayTracer->AddObject(new Sphere(glm::vec3(0.65f,0.25f,0),       0.15, glm::vec3(0.2f, 0.8f, 0.2f), glm::vec3(0.8f, 0.8f, 0.8f), 0.0f, 0, 0));
 	rayTracer->AddObject(new Sphere(glm::vec3(-0.8f, 0, -0.8f),     0.55, glm::vec3(0.2f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), 0.7f, 0, 0));
-	rayTracer->AddObject(new Sphere(glm::vec3(0.25f, -0.2f, -0.0f), 0.45, glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), -5.0f, 0.75f, 1.15f));
+	rayTracer->AddObject(new Sphere(glm::vec3(0.25f, -0.2f, -0.0f), 0.45, glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), -5.0f, 0.50f, 1.05f));
 	rayTracer->AddObject(new Sphere(glm::vec3(1.0f, -0.05f, -2.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0.0015f, 0, 0));
+
+	rayTracer->AddObject(new Sphere(glm::vec3(-1.0f, -0.05f, -2.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0.0015f, 0, 0));
+	rayTracer->AddObject(new Sphere(glm::vec3(0.0f, -0.05f, -3.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0.0015f, 0, 0));
+	rayTracer->AddObject(new Sphere(glm::vec3(-1.0f, -1.00f, -2.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0.0015f, 0, 0));
+
+
 	rayTracer->AddObject(new Plane(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(1, 1, 1)));
 
 	ThreadTrace* tt = new ThreadTrace(cam, rayTracer, m_renderer);
@@ -253,6 +271,7 @@ int main()
 	SDL_Quit();
 	m_renderer = nullptr;
 	m_window = nullptr;
+	delete tt;
 	delete cam;
 	delete rayTracer;
 

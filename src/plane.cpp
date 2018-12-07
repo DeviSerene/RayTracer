@@ -14,7 +14,7 @@ Plane::Plane(glm::vec3 _planeCentre, glm::vec3 _planeNormal, glm::vec3 _material
 
 glm::vec3 Plane::Shade(glm::vec3 _samplePoint, Ray* _ray, glm::vec3 _lightD)
 {
-	return m_material * glm::vec3(255);
+	return m_material * glm::vec3(155);
 
 	float p = 10;
 
@@ -37,9 +37,9 @@ glm::vec3 Plane::Shade(glm::vec3 _samplePoint, Ray* _ray, glm::vec3 _lightD)
 
 	ret = glm::clamp(ret, 0.0f, 1.0f);
 	//convert to 255
-	ret.r = ret.r * 2550.0f;
-	ret.g = ret.g * 2550.0f;
-	ret.b = ret.b * 2550.0f;
+	ret.r = ret.r * 255.0f;
+	ret.g = ret.g * 255.0f;
+	ret.b = ret.b * 255.0f;
 
 	return ret;
 
