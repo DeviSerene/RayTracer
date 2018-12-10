@@ -19,6 +19,9 @@ include_directories(
   
   add_definitions(-DSDL_MAIN_HANDLED)
 
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp /Ox")
+set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /openmp")
+
 add_executable(raytracer
 	src/main.cpp
 	src/ray.h
@@ -32,6 +35,13 @@ add_executable(raytracer
 	src/tracer.cpp
 	src/plane.h
 	src/plane.cpp
+	src/threadtrace.h
+	src/fps.h
+	src/fps.cpp
+	src/Sprite.h
+	src/Sprite.cpp
+	src/SpriteFactory.h
+	src/SpriteFactory.cpp
 )
 
 target_link_libraries(raytracer

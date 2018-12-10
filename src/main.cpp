@@ -3,112 +3,24 @@
 #include "sphere.h"
 #include "plane.h"
 #include "tracer.h"
+#include "fps.h"
 #include <SDL2/SDL.h>
 #include <iostream>
-#include <mutex>
-#include <thread>
 #include <vector>
+#include "threadtrace.h"
+#include "SpriteFactory.h"
 
-#define WINDOWX 640
-#define WINDOWY 480
-#define NUM_THREADS 8
-#define FRAME_VALUES 10
 
 /*
 TODO:
 
-Put the multi-threading in its own class
-Put the FPS counter in its own class
 Have multiple iterations of the raytracer: no multithreading, multithreading, openMP; with low number of objects and high number of objects.
 Video: explain the process of shading, shadows, reflections, transparancy and refraction. Show difference between frame rate fo
 
 */
 
+void Bounce(int& bouncy, Tracer* rayTracer, float deltaT);
 
-class ThreadTrace
-{
-public:
-
-	ThreadTrace(Camera* _cam, Tracer* _rayTracer, SDL_Renderer* _renderer) 
-	{
-		m_cam = _cam; m_rayTracer = _rayTracer; m_renderer = _renderer;
-	}
-
-	void Draw()
-	{
-		for (int x = 0; x < WINDOWX; x++)
-		{
-			for (int y = 0; y < WINDOWY; y++)
-			{
-				glm::vec3 color = cols[((x*WINDOWY) + y)];
-				SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, 255);
-				SDL_RenderDrawPoint(m_renderer, x, y);
-			}
-		}
-	}
-
-	void Perform()
-	{
-		m_currentX = 0; m_currentY = 0; m_currentT = 0;
-
-		m_maxX = (WINDOWX / (NUM_THREADS/2));
-		m_maxY = (WINDOWY / (NUM_THREADS/2));
-		for (int i = 0; i < (NUM_THREADS / 2); i++)
-		{
-			m_currentX = i * m_maxX;
-			for (int i2 = 0; i2 < (NUM_THREADS / 2); i2++)
-			{
-				m_currentY = i2 * m_maxY;
-		//		std::cout <<"Thread[" << m_currentT << "] started. \n";
-				if(m_currentT < NUM_THREADS -1)
-					t[m_currentT] = std::thread([this] {this->Call(m_currentX, m_currentY, m_maxX, m_maxY); });
-				else
-					Call(m_currentX, m_currentY, m_maxX, m_maxY);
-				++m_currentT; //(i*NUM_THREADS_Y) +i2
-			}
-		}
-
-		
-		//we should now join up all remaining threads to main
-		for (int ct = 0; ct < NUM_THREADS -1; ct++)
-		{
-		//	std::cout <<"Thread[" << ct << "] joined. \n";
-			t[ct].join();
-		}
-	}
-
-private:
-	void Call(int _xStart, int _yStart, int _x, int _y)
-	{
-		for (int x = _xStart; x < _xStart+_x; x++)
-		{
-			for (int y = _yStart; y < _yStart+ _y; y++)
-			{//std::cout << "X: " << x << " Y: " << y << std::endl;
-				Ray currentRay = m_cam->SpawnRay(x, y);
-				glm::vec3 colour = m_rayTracer->RayTrace(&currentRay);
-
-				mu.lock();
-				cols[((x*WINDOWY) + y)] = colour;
-				//SDL_SetRenderDrawColor(m_renderer, colour.r, colour.g, colour.b, 255);
-				//SDL_RenderDrawPoint(m_renderer, x, y);
-				mu.unlock();
-			}
-		}
-		//std::cout << "Thread finished.\n";
-	}
-
-	int m_currentX;
-	int m_currentY;
-	int m_maxX;
-	int m_maxY;
-	int m_currentT;
-	glm::vec3 cols[WINDOWX*WINDOWY];
-	std::thread t[NUM_THREADS];
-	std::mutex mu;
-	Camera* m_cam;
-	Tracer* m_rayTracer;
-	SDL_Renderer* m_renderer;
-};
 
 int main()
 {
@@ -138,6 +50,18 @@ int main()
 		return 0;
 	}
 
+	//Initialize PNG loading
+	int imgFlags = IMG_INIT_PNG;
+	if (!(IMG_Init(imgFlags) & imgFlags))
+	{
+		std::cout << "SDL_image could not initialize! SDL_image Error: " << IMG_GetError();
+		system("pause");
+		return 0;
+	}
+
+	SpriteFactory::SetRenderer(m_renderer);
+	SpriteFactory::SetWindow(m_window);
+
 	//////////////////////
 	/// INIT RAYTRACER ///
 	//////////////////////
@@ -149,14 +73,13 @@ int main()
 	rayTracer->AddObject(new Sphere(glm::vec3(0.25f, -0.2f, -0.0f), 0.45, glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), -5.0f, 0.50f, 1.05f));
 	rayTracer->AddObject(new Sphere(glm::vec3(1.0f, -0.05f, -2.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0.0015f, 0, 0));
 
-	rayTracer->AddObject(new Sphere(glm::vec3(-1.0f, -0.05f, -2.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0.0015f, 0, 0));
-	rayTracer->AddObject(new Sphere(glm::vec3(0.0f, -0.05f, -3.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0.0015f, 0, 0));
-	rayTracer->AddObject(new Sphere(glm::vec3(-1.0f, -1.00f, -2.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0.0015f, 0, 0));
+	rayTracer->AddObject(new Sphere(glm::vec3(-1.0f, -0.05f, -2.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0.15f, 0, 0));
+	rayTracer->AddObject(new Sphere(glm::vec3(-1.0f, -1.00f, -2.0f), 0.45, glm::vec3(0.8f, 0, 0), glm::vec3(0.8f, 0.8f, 0.8f), 0, 0, 0));
 
 
 	rayTracer->AddObject(new Plane(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(1, 1, 1)));
 
-	ThreadTrace* tt = new ThreadTrace(cam, rayTracer, m_renderer);
+	//tt->Init();
 	/////////////////////////
 	/// PERFORM RAYTRACER ///
 	/////////////////////////
@@ -164,50 +87,18 @@ int main()
 	float currentT = 0;
 	float lastT = 0;
 	float deltaT = 0;
-
-	// An array to store frame times:
-	Uint32 frametimes[FRAME_VALUES];
-	memset(frametimes, 0, sizeof(frametimes));
-	// Last calculated SDL_GetTicks
-	Uint32 frametimelast = SDL_GetTicks();
-	// total frames rendered
-	Uint32 framecount = 0;
-	float framespersecond = 0;
-	Uint32 frametimesindex;
-	Uint32 count;
-	// the value you want
-	
+	Fps* fpsCounter = new Fps();
 	int bouncy = 0;
 	SDL_Event e;
+	SDL_Rect name = { 0,0,255,35 };
+
 	while (m_play)
 	{
 		//update time
 		currentT = SDL_GetTicks();
 		deltaT = currentT - lastT;
 		lastT = currentT;
-
-		//FPS
-		// frametimesindex is the position in the array. It ranges from 0 to FRAME_VALUES.
-		// This value rotates back to 0 after it hits FRAME_VALUES.
-		frametimesindex = framecount % FRAME_VALUES;
-		// store the current time
-		// save the frame time value
-		frametimes[frametimesindex] = currentT - frametimelast;
-		// save the last frame time for the next fpsthink
-		frametimelast = currentT;
-		// increment the frame count
-		framecount++;
-		if (framecount < FRAME_VALUES) {count = framecount;}
-		else {count = FRAME_VALUES;}
-		// add up all the values and divide to get the average frame time.
-		framespersecond = 0;
-		for (int i = 0; i < count; i++) {framespersecond += frametimes[i];}
-		framespersecond /= count;
-		// now to make it an actual frames per second value...
-		framespersecond = 1000.f / framespersecond;
-
-		std::cout << "FPS: " << framespersecond << std::endl;
-
+		fpsCounter->Update(currentT);
 		
 		//update SDL event
 		while (SDL_PollEvent(&e) != 0) 
@@ -217,32 +108,12 @@ int main()
 				m_play = false; 
 			}
 		}
-		//Bouncing balls
-		if (bouncy <= 5)
-		{
-			rayTracer->GetObjects()[0]->Translate(glm::vec3(0.0001*deltaT, -0.0001*deltaT, 0));
-			rayTracer->GetObjects()[1]->Translate(glm::vec3(-0.0001*deltaT, 0.0001*deltaT, 0));
-			rayTracer->GetObjects()[2]->Translate(glm::vec3(0, 0, -0.0001*deltaT));
-			bouncy++;
-		}
-		else
-		{
-			rayTracer->GetObjects()[0]->Translate(glm::vec3(-0.0001*deltaT, 0.0001*deltaT,0));
-			rayTracer->GetObjects()[1]->Translate(glm::vec3(0.0001*deltaT, -0.0001*deltaT, 0));
-			rayTracer->GetObjects()[2]->Translate(glm::vec3(0, 0, 0.0001*deltaT));
-			bouncy++;
-			if (bouncy > 11)
-			{
-				bouncy = 0;
-			}
-		}
+		Bounce(bouncy, rayTracer, deltaT);
 
 		//draw the screen
 		SDL_SetRenderDrawColor(m_renderer, 0x0, 0x0, 0x0, 0xFF);
 		SDL_RenderClear(m_renderer);
-		tt->Perform();
-		tt->Draw();
-		/*
+		///*
 		for (int x = 0; x < WINDOWX; x++)
 		{
 			for (int y = 0; y < WINDOWY; y++)
@@ -255,13 +126,95 @@ int main()
 			}
 		}
 		//*/
+		SpriteFactory::Draw("assets/single.png", name);
+		fpsCounter->Draw();
+		//SpriteFactory::Draw("assets/fps.png", name);
 		SDL_RenderPresent(m_renderer);
 	}
+
+	//OPENMP
+	m_play = true;
+	while (m_play)
+	{
+		//update time
+		currentT = SDL_GetTicks();
+		deltaT = currentT - lastT;
+		lastT = currentT;
+		fpsCounter->Update(currentT);
+
+		//update SDL event
+		while (SDL_PollEvent(&e) != 0)
+		{
+			if (e.type == SDL_QUIT)
+			{
+				m_play = false;
+			}
+		}
+		Bounce(bouncy, rayTracer, deltaT);
+
+		//draw the screen
+		SDL_SetRenderDrawColor(m_renderer, 0x0, 0x0, 0x0, 0xFF);
+		SDL_RenderClear(m_renderer);
+
+		#pragma omp parallel
+		#pragma omp for 
+//		#pragma omp collapse(2)
+		for (int x = 0; x < WINDOWX; x++)
+		{
+			for (int y = 0; y < WINDOWY; y++)
+			{
+				Ray currentRay = cam->SpawnRay(x, y);
+				glm::vec3 colour = rayTracer->RayTrace(&currentRay);
+
+				#pragma omp critical 
+				{ 
+					SDL_SetRenderDrawColor(m_renderer, colour.r, colour.g, colour.b, 255);
+					SDL_RenderDrawPoint(m_renderer, x, y);
+				}
+			}
+		}
+		SpriteFactory::Draw("assets/open.png", name);
+		fpsCounter->Draw();
+		SDL_RenderPresent(m_renderer);
+	}
+
+	//MULTI-THREADING
+	ThreadTrace* tt = new ThreadTrace(cam, rayTracer, m_renderer);
+	m_play = true;
+	while (m_play)
+	{
+		//update time
+		currentT = SDL_GetTicks();
+		deltaT = currentT - lastT;
+		lastT = currentT;
+		fpsCounter->Update(currentT);
+
+		//update SDL event
+		while (SDL_PollEvent(&e) != 0)
+		{
+			if (e.type == SDL_QUIT)
+			{
+				m_play = false;
+			}
+		}
+		Bounce(bouncy, rayTracer, deltaT);
+
+		//draw the screen
+		SDL_SetRenderDrawColor(m_renderer, 0x0, 0x0, 0x0, 0xFF);
+		SDL_RenderClear(m_renderer);
+		tt->Perform();
+		tt->Draw();
+		SpriteFactory::Draw("assets/multi.png", name);
+		fpsCounter->Draw();
+		SDL_RenderPresent(m_renderer);
+	}
+
 
 	//////////////////////////
 	/// FINISHED RAYTRACER ///
 	//////////////////////////
 	std::cout << "Fin ";
+	//tt->DeInit();
 
 	////////////////
 	/// CLEAN UP ///
@@ -271,9 +224,34 @@ int main()
 	SDL_Quit();
 	m_renderer = nullptr;
 	m_window = nullptr;
+	delete fpsCounter;
 	delete tt;
 	delete cam;
 	delete rayTracer;
 
 	return 0;
+}
+
+void Bounce(int& bouncy, Tracer* rayTracer, float deltaT)
+{
+
+	//Bouncing balls
+	if (bouncy <= 5)
+	{
+		rayTracer->GetObjects()[0]->Translate(glm::vec3(0.0001*deltaT, -0.0001*deltaT, 0));
+		rayTracer->GetObjects()[1]->Translate(glm::vec3(-0.0001*deltaT, 0.0001*deltaT, 0));
+		rayTracer->GetObjects()[2]->Translate(glm::vec3(0, 0, -0.0001*deltaT));
+		bouncy++;
+	}
+	else
+	{
+		rayTracer->GetObjects()[0]->Translate(glm::vec3(-0.0001*deltaT, 0.0001*deltaT, 0));
+		rayTracer->GetObjects()[1]->Translate(glm::vec3(0.0001*deltaT, -0.0001*deltaT, 0));
+		rayTracer->GetObjects()[2]->Translate(glm::vec3(0, 0, 0.0001*deltaT));
+		bouncy++;
+		if (bouncy > 11)
+		{
+			bouncy = 0;
+		}
+	}
 }
