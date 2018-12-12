@@ -12,6 +12,7 @@
 #include "GamestateManager.h"
 #include "GameState.h"
 #include "RayState.h"
+#include <time.h>
 
 
 
@@ -58,7 +59,7 @@ int main()
 	//////////////////////
 	/// INIT RAYTRACER ///
 	//////////////////////
-
+	srand(time(NULL));
 	GamestateManager* gsm = new GamestateManager();
 	gsm->AddState(new RayState(WINDOWX, WINDOWY));
 

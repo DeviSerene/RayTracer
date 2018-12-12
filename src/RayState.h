@@ -29,7 +29,9 @@ public:
 	void Draw();								//draw to renderer
 private:
 
+	float RandomFloat(float min, float max);
 	void Bounce();
+	//The different rays for threading the raytracer
 	void SingleThread();
 	void MultiThread();
 	void ParaThread();

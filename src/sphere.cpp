@@ -10,6 +10,7 @@ Sphere::Sphere(glm::vec3 _sphereCentre, float _radius, glm::vec3 _material, glm:
 	m_reflectiveness = _reflectiveness;
 	m_transparancy = _transparancy;
 	m_refractiveIndex = _refraction;
+	m_roughness = rand()%100;
 }
 
 void Sphere::Translate(glm::vec3 _by)
@@ -19,7 +20,6 @@ void Sphere::Translate(glm::vec3 _by)
 
 glm::vec3 Sphere::Shade(glm::vec3 _samplePoint, Ray* _ray, glm::vec3 _lightD)
 {
-	float p = 10;
 
 	glm::vec3 normal = glm::normalize(_samplePoint - m_sphereCentre);
 	glm::vec3 lightDirection = { 0.5, -1, 1 };
@@ -37,7 +37,7 @@ glm::vec3 Sphere::Shade(glm::vec3 _samplePoint, Ray* _ray, glm::vec3 _lightD)
 	}
 
 	glm::vec3 ret = dotProduct * lightColour * m_material;
-	ret += pow(glm::dot(halfVector, normal), p) * lightColour * m_specCol;
+	ret += pow(glm::dot(halfVector, normal), m_roughness) * lightColour * m_specCol;
 
 	ret = glm::clamp(ret, 0.15f, 1.0f);
 	//convert to 255

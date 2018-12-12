@@ -6,9 +6,9 @@ Camera::Camera(float _w, float _h)
 {
 	m_width = _w;
 	m_height = _h;
-
+	m_position = glm::vec3(0, 0, -5.0f);
 	m_projectionMatrix = glm::perspective(30.0f * PI / 180.0f, m_width / m_height, 0.1f, 100.0f);
-	m_viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5.0f));
+	m_viewMatrix = glm::translate(glm::mat4(1.0f), m_position);
 
 	m_invPM = glm::inverse(m_projectionMatrix);
 	m_invVM = glm::inverse(m_viewMatrix);
@@ -17,6 +17,13 @@ Camera::Camera(float _w, float _h)
 Camera::~Camera()
 {
 
+}
+
+void Camera::Move(glm::vec3 _movement)
+{
+	m_position += _movement;
+	m_viewMatrix = glm::translate(glm::mat4(1.0f), m_position);
+	m_invVM = glm::inverse(m_viewMatrix);
 }
 
 Ray Camera::SpawnRay(int _x, int _y)

@@ -23,6 +23,8 @@ RayState::RayState(int windowX, int windowY)
 	name = { 0,0,255,35 };
 
 	type = RTT_Single;
+	//
+
 }
 
 RayState::~RayState()
@@ -86,6 +88,27 @@ bool RayState::HandleSDLEvents()						//handle inputs
 				break;
 			case SDLK_UP:
 				//add a sphere
+				rayTracer->AddObject(new Sphere(
+					glm::vec3(RandomFloat(-2.0f, 2.0f), RandomFloat(-2.0f, 0.0f), RandomFloat(-2.0f, 2.0f)),
+					RandomFloat(0.1f, 0.9f),
+					glm::vec3(RandomFloat(0.6f, 1.0f), RandomFloat(0.6f, 1.0f), RandomFloat(0.6f, 1.0f)),
+					glm::vec3(RandomFloat(0.6f, 1.0f), RandomFloat(0.6f, 1.0f), RandomFloat(0.6f, 1.0f)),
+					RandomFloat(-2.0f, 1.0f),
+					RandomFloat(-2.0f, 1.0f),
+					RandomFloat(1.0f, 1.1f)));
+
+				break;
+			case SDLK_w:
+				cam->Move(glm::vec3(0.0f, 0.0f, 0.1f));
+				break;
+			case SDLK_s:
+				cam->Move(glm::vec3(0.0f, 0.0f, -0.1f));
+				break;
+			case SDLK_d:
+				cam->Move(glm::vec3(-0.1f, 0.0f, 0.0f));
+				break;
+			case SDLK_a:
+				cam->Move(glm::vec3(0.1f, 0.0f, 0.0f));
 				break;
 			}
 		}
@@ -101,7 +124,7 @@ void RayState::Update()				//update
 	lastT = currentT;
 	fpsCounter->Update(currentT);
 
-	Bounce(bouncy, rayTracer, deltaT);
+	Bounce();
 
 	if (type == RTT_Multi)
 	{
@@ -130,22 +153,22 @@ void RayState::Draw()								//draw to renderer
 
 void RayState::Bounce()
 {
-
+	float amount = deltaT * 0.0001;
 	//Bouncing balls
 	if (rayTracer->GetObjects().size() >= 4)
 	{
 		if (bouncy <= 5)
 		{
-			rayTracer->GetObjects()[1]->Translate(glm::vec3(0.0001*deltaT, -0.0001*deltaT, 0));
-			rayTracer->GetObjects()[2]->Translate(glm::vec3(-0.0001*deltaT, 0.0001*deltaT, 0));
-			rayTracer->GetObjects()[3]->Translate(glm::vec3(0, 0, -0.0001*deltaT));
+			rayTracer->GetObjects()[1]->Translate(glm::vec3(amount, -amount, 0));
+			rayTracer->GetObjects()[2]->Translate(glm::vec3(-amount, amount, 0));
+			rayTracer->GetObjects()[3]->Translate(glm::vec3(0, 0, -amount));
 			bouncy++;
 		}
 		else
 		{
-			rayTracer->GetObjects()[1]->Translate(glm::vec3(-0.0001*deltaT, 0.0001*deltaT, 0));
-			rayTracer->GetObjects()[2]->Translate(glm::vec3(0.0001*deltaT, -0.0001*deltaT, 0));
-			rayTracer->GetObjects()[3]->Translate(glm::vec3(0, 0, 0.0001*deltaT));
+			rayTracer->GetObjects()[1]->Translate(glm::vec3(-amount, amount, 0));
+			rayTracer->GetObjects()[2]->Translate(glm::vec3(amount, -amount, 0));
+			rayTracer->GetObjects()[3]->Translate(glm::vec3(0, 0, amount));
 			bouncy++;
 			if (bouncy > 11)
 			{
@@ -197,4 +220,28 @@ void RayState::MultiThread()
 {
 	tt->Draw();
 	SpriteFactory::Draw("assets/multi.png", name);
+	//
+	for (int i = 0; i < tt->GetThreadCount(); i++)
+	{
+		std::string file = "assets/" + std::to_string(i) + ".png";
+		SpriteFactory::Draw("assets/thread.png", { 0,60 + (16 * i),100,15 });
+		SpriteFactory::Draw(file, { 110, 60 + (16 * i),15,15 });
+		std::string number = std::to_string(tt->GetTime(i)/1000.0f);
+		for (int f = 0; f < 5; f++)
+		{
+			file = "assets/";
+			file += number.at(f);
+			file += ".png";
+			SpriteFactory::Draw(file, { 150 + (16 * f),60 + (16 * i),15,15 });
+		}
+	}
+}
+
+float RayState::RandomFloat(float min, float max)
+{
+	assert(max > min);
+	float random = ((float)rand()) / (float)RAND_MAX;
+
+	float range = max - min;
+	return (random*range) + min;
 }

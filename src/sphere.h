@@ -14,4 +14,5 @@ public:
 private:
 	glm::vec3 m_sphereCentre;
 	float m_radius;
+	float m_roughness;
 };
