@@ -13,6 +13,8 @@ public:
 	glm::vec3 RayTrace(Ray* _ray, int _iterations = 0, int _ignore = -1);
 	inline std::vector<Object*> GetObjects() { return m_objects; }
 
+	void RemoveObject() { delete m_objects.back(); m_objects.pop_back(); }
+
 private:
 	std::vector<Object*> m_objects;
 	glm::vec3 m_lightPos;

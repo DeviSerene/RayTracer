@@ -42,6 +42,12 @@ add_executable(raytracer
 	src/Sprite.cpp
 	src/SpriteFactory.h
 	src/SpriteFactory.cpp
+	src/GameState.h
+	src/GameState.cpp
+	src/GameStateManager.h
+	src/GameStateManager.cpp
+	src/RayState.h
+	src/RayState.cpp
 )
 
 target_link_libraries(raytracer
