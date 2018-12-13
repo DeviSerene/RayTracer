@@ -4,6 +4,8 @@
 # https://github.com/DeviSerene/RayTracer #
 ###########################################
 Threaded Raytracer on the CPU: including lighting, reflectivity, refraction/transparancy and shadows.
+To run the program, open the Release folde and open RayTracer.exe
+You are able to view the doxygen manual by opening html folder and then open index.html
 
 ###########################################
 #                Controls                 #

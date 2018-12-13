@@ -6,6 +6,10 @@
 #include <iostream>
 #include <memory>
 
+///
+/// The GameStateManager contains a list of gameStates, you are able to change or add states to this list.
+/// It will update the most recent state, and will draw states from the bottom to the top.
+///
 class GamestateManager {
 
 public:

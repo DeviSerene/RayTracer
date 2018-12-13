@@ -60,28 +60,28 @@ void Fps::Draw()
 		m_fpsS = std::to_string(m_framesPerSecond);
 		for (int i = 0; i < m_fpsS.size(); i++)
 		{
-			writer = "assets/";
-			writer += m_fpsS.at(i);
-			writer += ".png";
+			m_writer = "assets/";
+			m_writer += m_fpsS.at(i);
+			m_writer += ".png";
 			switch (i)
 			{
 			case 0:
-				SpriteFactory::Draw(writer, m_digitTens);
+				SpriteFactory::Draw(m_writer, m_digitTens);
 				break;
 			case 1:
-				SpriteFactory::Draw(writer, m_digitOnes);
+				SpriteFactory::Draw(m_writer, m_digitOnes);
 				break;
 			case 2:
-				SpriteFactory::Draw(writer, m_digitPoint);
+				SpriteFactory::Draw(m_writer, m_digitPoint);
 				break;
 			case 3:
-				SpriteFactory::Draw(writer, m_digitTenth);
+				SpriteFactory::Draw(m_writer, m_digitTenth);
 				break;
 			case 4:
-				SpriteFactory::Draw(writer, m_digitHundreth);
+				SpriteFactory::Draw(m_writer, m_digitHundreth);
 				break;
 			case 5:
-				SpriteFactory::Draw(writer, m_digitThousanth);
+				SpriteFactory::Draw(m_writer, m_digitThousanth);
 				break;
 			}
 			if (i >= 5)

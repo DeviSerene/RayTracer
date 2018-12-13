@@ -11,6 +11,7 @@
 #define WINDOWX 640
 #define WINDOWY 480
 
+///This class deals with multithreading the raytracer
 class ThreadTrace
 {
 public:
@@ -19,8 +20,10 @@ public:
 	{
 		m_cam = _cam; m_rayTracer = _rayTracer; m_renderer = _renderer;
 		m_finished = false;
+		//std::thread::hardware_concurrency();
 	}
 
+	///This will create active threads, ready to be used
 	void Init()
 	{
 		m_currentX = 0; m_currentY = 0; m_currentT = 0;
@@ -42,6 +45,7 @@ public:
 		}
 	}
 
+	///this will close all threads
 	void DeInit()
 	{
 		m_finished = true;
@@ -53,6 +57,7 @@ public:
 		}
 	}
 
+	///This loops thru the created threads to perform the raytracer
 	void Loop()
 	{
 		for (int ct = 0; ct < NUM_THREADS; ct++)
@@ -66,6 +71,7 @@ public:
 		}
 	}
 
+	///this draws the collected colours on screen;
 	void Draw()
 	{
 		for (int x = 0; x < WINDOWX; x++)
@@ -79,6 +85,7 @@ public:
 		}
 	}
 
+	///This creates the threads to perform the raytracing; this is a different method to the one above.
 	void Perform()
 	{
 		m_currentX = 0; m_currentY = 0; m_currentT = 0;
@@ -93,9 +100,9 @@ public:
 				m_currentY = i2 * m_maxY;
 				//		std::cout <<"Thread[" << m_currentT << "] started. \n";
 				if (m_currentT < NUM_THREADS - 1)
-					m_threads[m_currentT] = std::thread([this] {this->Call(m_currentX, m_currentY, m_maxX, m_maxY, m_currentT); });
+					m_threads[m_currentT] = std::thread([this] {this->Call(m_currentX, m_currentY, m_maxX, m_maxY, m_currentT); }); //create a thread
 				else
-					Call(m_currentX, m_currentY, m_maxX, m_maxY, m_currentT);
+					Call(m_currentX, m_currentY, m_maxX, m_maxY, m_currentT); //perform on the main thread
 				++m_currentT; //(i*NUM_THREADS_Y) +i2
 			}
 		}
@@ -160,6 +167,8 @@ private:
 		m_time[_threadID] = SDL_GetTicks() - start;
 		//std::cout << "Thread finished.\n";
 	}
+
+
 
 	int m_currentX;
 	int m_currentY;
